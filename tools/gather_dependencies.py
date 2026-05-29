@@ -41,7 +41,10 @@ def ubuntu_packages(pkg_name: str, pkg_json: Dict[str, Any]) -> Set[str]:
     return set(ubtunu_deps.get(pkg_name, [])) | metadata_ubuntu_packages(pkg_json)
 
 
-def gather_dependencies(pkg_name: str, seen: set) -> set:
+def gather_dependencies(pkg_name: str, seen: set, is_root: bool = False) -> set:
+    # HACK: avoid gathering GAPDoc's dependencies for other packages
+    if pkg_name == "gapdoc" and not is_root:
+        return set()
     try:
         pkg_json = metadata(pkg_name)
     except:
@@ -67,7 +70,7 @@ def main(pkgs: List[str]) -> None:
     seen: Set[str] = set()
     deps = set()
     for pkg in pkgs:
-        deps |= gather_dependencies(normalize_pkg_name(pkg), seen)
+        deps |= gather_dependencies(normalize_pkg_name(pkg), seen, True)
     for d in deps:
         print(d)
 
